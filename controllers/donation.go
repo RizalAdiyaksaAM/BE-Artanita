@@ -228,3 +228,17 @@ func (d *DonationController) GetDonaturByProgramDonation(ctx echo.Context) error
 
 	return http_util.HandleSuccessResponse(ctx, http.StatusOK, msg.SUCCESS_GET_DONATIONS, donations)
 }
+
+func (d *DonationController) GetNotifikasi(ctx echo.Context) error {
+	donationID, err := uuid.Parse(ctx.Param("id"))
+	if err != nil {
+		return http_util.HandleErrorResponse(ctx, http.StatusBadRequest, "Invalid Donation ID format")
+	}
+
+	notifications, err := d.donationUsecase.GetNotifikasiStatus(ctx, donationID)
+	if err != nil {
+		return http_util.HandleErrorResponse(ctx, http.StatusInternalServerError, msg.FAILED_GET_DONATIONS)
+	}
+
+	return http_util.HandleSuccessResponse(ctx, http.StatusOK, msg.SUCCESS_GET_DONATIONS, notifications)
+}

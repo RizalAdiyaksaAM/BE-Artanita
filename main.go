@@ -54,23 +54,6 @@ func main() {
 	// Inisialisasi rute
 	routes.InitRoute(e, db, v)
 
-	// // Buat context untuk ngrok
-	// ctx := context.Background()
-
-	// // Siapkan listener ngrok
-	// listener, err := ngrok.Listen(ctx,
-	// 	ngrokconfig.HTTPEndpoint(),
-	// 	ngrok.WithAuthtokenFromEnv(), // Memerlukan NGROK_AUTHTOKEN di environment variables
-	// )
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// // Tampilkan URL ngrok
-	// log.Println("Ngrok Public URL:", listener.URL())
-
-	// // Jalankan server dengan listener ngrok
-	// e.Logger.Fatal(e.Server.Serve(listener))
 
 	//Tentukan port dari environment variable atau gunakan default
 	port := os.Getenv("PORT")

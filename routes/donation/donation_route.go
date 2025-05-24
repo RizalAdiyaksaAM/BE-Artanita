@@ -42,4 +42,5 @@ func InitDonationRoute(g *echo.Group, db *gorm.DB, v *validation.Validator) {
 	g.GET("/donations-chart", donationController.GetChartDonation)
 	g.GET("/donations-notifikasi", donationController.GetDonaturNotifikasi)
 	g.GET("/donations-program/:id", donationController.GetDonaturByProgramDonation)
+	g.GET("/donations-notifikasi-id/:id", donationController.GetNotifikasi)
 }

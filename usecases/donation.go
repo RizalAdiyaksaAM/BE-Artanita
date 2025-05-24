@@ -32,6 +32,7 @@ type DonationUsecase interface {
     GetChartDonation(c echo.Context) (*[]dto.DonationChartResponse, error)
     GetDonaturNotifikasi(c echo.Context) (*[]dto.DonaturNotifikasiResponse, error)
     GetDonaturByProgramDonation(c echo.Context, programDonationID uuid.UUID) (*[]dto.DonationLandingResponse, error)
+    GetNotifikasiStatus(c echo.Context, donationID uuid.UUID) (*entities.TransactionNotification, error) 
 }
 
 func init() {
@@ -456,3 +457,18 @@ func (du *donationUsecase) GetDonaturByProgramDonation(c echo.Context, programDo
 
     return &response, nil
 }
+
+func (du *donationUsecase) GetNotifikasiStatus(c echo.Context, donationID uuid.UUID) (*entities.TransactionNotification, error) {
+    // Mengambil konteks dari Echo
+    ctx := c.Request().Context()
+
+    // Memanggil repository untuk mendapatkan donasi
+    notifications, err := du.donationRepository.GetNotifikasiByDonationID(ctx, donationID)
+    if err != nil {
+        return nil, err
+    }
+
+    return notifications, nil
+}
+
+

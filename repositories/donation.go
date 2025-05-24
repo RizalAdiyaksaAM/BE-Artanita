@@ -20,6 +20,7 @@ type DonationRepository interface {
 	GetDonationsLanding(ctx context.Context) (*[]entities.Donation, error)
 	GetDonationByID(ctx context.Context, donationID uuid.UUID) (*entities.Donation, error)
 	GetNotifikasi(ctx context.Context) (*[]entities.TransactionNotification, error)
+	GetNotifikasiByDonationID(ctx context.Context, donationID uuid.UUID) (*entities.TransactionNotification, error)
 	GetDonationByProgramID(ctx context.Context, programID uuid.UUID) (*[]entities.Donation, error)
 }
 
@@ -71,55 +72,55 @@ func (dr *donationRepo) Update(ctx context.Context, donation *entities.Donation)
 }
 
 func (dr *donationRepo) GetDonations(ctx context.Context, programDonationID uuid.UUID, searchName string, req *dto_base.PaginationRequest) ([]entities.Donation, int64, error) {
-    if err := ctx.Err(); err != nil {
-        return nil, 0, err
-    }
+	if err := ctx.Err(); err != nil {
+		return nil, 0, err
+	}
 
-    var donations []entities.Donation
-    var totalData int64
+	var donations []entities.Donation
+	var totalData int64
 
-    offset := (req.Page - 1) * req.Limit
+	offset := (req.Page - 1) * req.Limit
 
-    query := dr.DB.WithContext(ctx).Model(&entities.Donation{})
+	query := dr.DB.WithContext(ctx).Model(&entities.Donation{})
 
-    // Jika ada filter ProgramDonationID, tambahkan kondisi filter
-    if programDonationID != uuid.Nil {
-        query = query.Where("program_donation_id = ?", programDonationID)
-    }
+	// Jika ada filter ProgramDonationID, tambahkan kondisi filter
+	if programDonationID != uuid.Nil {
+		query = query.Where("program_donation_id = ?", programDonationID)
+	}
 
-    // Jika ada pencarian berdasarkan nama, tambahkan kondisi LIKE
-    if searchName != "" {
-        query = query.Where("name LIKE ?", "%"+searchName+"%")
-    }
+	// Jika ada pencarian berdasarkan nama, tambahkan kondisi LIKE
+	if searchName != "" {
+		query = query.Where("name LIKE ?", "%"+searchName+"%")
+	}
 
-    // Menghitung total data
-    if err := query.Count(&totalData).Error; err != nil {
-        return nil, 0, err
-    }
+	// Menghitung total data
+	if err := query.Count(&totalData).Error; err != nil {
+		return nil, 0, err
+	}
 
-    // Query untuk mengambil data donasi sesuai dengan pagination dan filter
-    query = query.Order(req.SortBy).Limit(req.Limit).Offset(offset)
+	// Query untuk mengambil data donasi sesuai dengan pagination dan filter
+	query = query.Order(req.SortBy).Limit(req.Limit).Offset(offset)
 
-    if err := query.Find(&donations).Error; err != nil {
-        return nil, 0, err
-    }
+	if err := query.Find(&donations).Error; err != nil {
+		return nil, 0, err
+	}
 
-    return donations, totalData, nil
+	return donations, totalData, nil
 }
 
 func (dr *donationRepo) GetDonationByID(ctx context.Context, donationID uuid.UUID) (*entities.Donation, error) {
-    if err := ctx.Err(); err != nil {
-        return nil, err
-    }
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 
-    var donation entities.Donation
+	var donation entities.Donation
 
-    // Query untuk mendapatkan donasi berdasarkan ID
-    if err := dr.DB.WithContext(ctx).Where("id = ?", donationID).First(&donation).Error; err != nil {
-        return nil, err
-    }
+	// Query untuk mendapatkan donasi berdasarkan ID
+	if err := dr.DB.WithContext(ctx).Where("id = ?", donationID).First(&donation).Error; err != nil {
+		return nil, err
+	}
 
-    return &donation, nil
+	return &donation, nil
 }
 
 func (dr *donationRepo) GetDonationsLanding(ctx context.Context) (*[]entities.Donation, error) {
@@ -156,11 +157,11 @@ func (dr *donationRepo) GetNotifikasi(ctx context.Context) (*[]entities.Transact
 
 // GetDonationByProgramID mengambil donasi berdasarkan ProgramDonationID
 func (dr *donationRepo) GetDonationByProgramID(ctx context.Context, programID uuid.UUID) (*[]entities.Donation, error) {
-    var donations []entities.Donation
-    if err := dr.DB.WithContext(ctx).Where("program_donation_id = ?", programID).Find(&donations).Error; err != nil {
-        return nil, err
-    }
-    return &donations, nil
+	var donations []entities.Donation
+	if err := dr.DB.WithContext(ctx).Where("program_donation_id = ?", programID).Find(&donations).Error; err != nil {
+		return nil, err
+	}
+	return &donations, nil
 }
 
 func (dr *donationRepo) GetDonation(ctx context.Context) (*[]entities.Donation, error) {
@@ -169,4 +170,18 @@ func (dr *donationRepo) GetDonation(ctx context.Context) (*[]entities.Donation, 
 		return nil, err
 	}
 	return &donations, nil
+}
+
+func (dr *donationRepo) GetNotifikasiByDonationID(ctx context.Context, donationID uuid.UUID) (*entities.TransactionNotification, error) {
+	var notification entities.TransactionNotification
+	if err := dr.DB.WithContext(ctx).
+		Where("order_id = ? AND transaction_status = ?", donationID, "settlement").
+		First(&notification).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil // atau custom handling
+		}
+		return nil, err
+	}
+
+	return &notification, nil
 }
